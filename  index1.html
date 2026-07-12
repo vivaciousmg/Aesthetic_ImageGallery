@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Aesthetic Archive — Dashboard</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter for UI, Playfair Display for Editorial Serifs -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    // Pre-initialize Tailwind configuration to prevent ReferenceErrors
+    window.tailwind = {
+      config: {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Premium Ambient Gradient: Nude Pink to highly visible Sky Blue */
+    .ambient-aesthetic-bg {
+      background: 
+        radial-gradient(circle at 15% 20%, rgba(255, 212, 208, 0.95) 0%, transparent 55%), 
+        radial-gradient(circle at 85% 75%, rgba(155, 197, 245, 0.85) 0%, transparent 60%), 
+        #fbf8f5;
+      background-attachment: fixed;
+    }
+
+    /* Custom Scrollbar for minimalistic look */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(140, 126, 116, 0.2);
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(140, 126, 116, 0.4);
+    }
+
+    /* Magazine asymmetrical layout variations on grid items */
+    @media (min-width: 1024px) {
+      .magazine-grid .gallery-card:nth-child(even) {
+        transform: translateY(24px);
+      }
+    }
+
+    /* Smooth transition presets */
+    .smooth-transition {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body class="ambient-aesthetic-bg font-sans text-[#3d352e] min-h-screen relative overflow-x-hidden selection:bg-[#cbdffa]">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-[#3d352e]/5 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <!-- Mobile Sidebar Toggle -->
+      <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 hover:bg-[#3d352e]/5 rounded-full transition-colors" aria-label="Toggle Navigation Menu">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <span class="text-xs uppercase tracking-[0.25em] text-[#8c7e74] hidden sm:block">Personal Vault</span>
+      <h1 class="font-serif text-xl sm:text-2xl font-bold italic tracking-wide">The Aesthetic Archive</h1>
+    </div>
+    
+    <!-- Search and Actions Bar -->
+    <div class="flex items-center space-x-4">
+      <div class="relative hidden md:block w-64">
+        <input type="text" id="searchBar" oninput="handleSearch(this.value)" placeholder="Search captures..." class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-full px-4 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#9bc5f5] smooth-transition text-[#3d352e]">
+        <i data-lucide="search" class="w-3.5 h-3.5 absolute right-3.5 top-2.5 text-[#8c7e74]"></i>
+      </div>
+      
+      <button onclick="openAddModal()" class="flex items-center space-x-2 bg-[#3d352e] hover:bg-[#3d352e]/90 text-[#fbf8f5] text-xs font-medium px-4 py-2 rounded-full shadow-lg shadow-[#3d352e]/10 transition-all transform active:scale-95">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span>Add Captured Media</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body Wrapper -->
+  <div class="flex min-h-[calc(100vh-73px)] relative">
+
+    <!-- Navigation Sidebar (Desktop view, drawer on mobile viewports) -->
+    <aside id="sidebarContainer" class="fixed inset-y-0 left-0 z-50 lg:z-10 lg:sticky lg:top-[73px] w-72 h-[calc(100vh-73px)] bg-white/80 backdrop-blur-xl lg:bg-transparent border-r lg:border-r-0 border-[#3d352e]/5 p-6 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 smooth-transition overflow-y-auto">
+      <div>
+        <div class="flex items-center justify-between lg:hidden mb-6">
+          <h2 class="font-serif text-lg italic text-[#3d352e]">Menu Categories</h2>
+          <button onclick="toggleMobileSidebar()" class="p-2 hover:bg-[#3d352e]/5 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="text-[10px] uppercase font-bold tracking-[0.2em] text-[#8c7e74]">Aesthetic Library</h3>
+          <button onclick="resetFilters()" class="text-[10px] text-[#9bc5f5] hover:underline font-semibold">Reset Filter</button>
+        </div>
+
+        <!-- Scrollable Category Navigation list -->
+        <nav class="space-y-1.5 max-h-[70vh] overflow-y-auto pr-1" id="categoryAccordionContainer">
+          <!-- Populated dynamically via JS -->
+        </nav>
+      </div>
+
+      <div class="pt-6 border-t border-[#3d352e]/5 mt-auto">
+        <div class="flex items-center space-x-3 bg-white/40 p-3 rounded-2xl">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-[#ffd4d0] to-[#9bc5f5] flex items-center justify-center font-serif italic text-xs text-[#3d352e] font-bold">M</div>
+          <div>
+            <h4 class="text-xs font-semibold">My Space</h4>
+            <p class="text-[10px] text-[#8c7e74]">Aesthetic Collector</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay backdrop for mobile navigation drawer -->
+    <div id="sidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-[#3d352e]/20 backdrop-blur-sm z-40 hidden lg:hidden smooth-transition"></div>
+
+    <!-- Content Grid Workspace -->
+    <main class="flex-1 p-6 lg:p-10 pb-24 overflow-x-hidden">
+      <!-- Grid Settings & Meta Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <div>
+          <span id="activePathIndicator" class="text-xs font-semibold uppercase tracking-wider text-[#8c7e74]">All Items</span>
+          <h2 class="font-serif text-2xl text-[#3d352e] mt-1 italic">Personal Collection</h2>
+        </div>
+
+        <div class="flex items-center space-x-3 self-end sm:self-auto">
+          <!-- View Style Selector -->
+          <div class="bg-white/40 p-1 rounded-full border border-[#3d352e]/5 flex items-center">
+            <button onclick="setGridStyle('magazine')" id="styleBtnMagazine" class="p-1.5 rounded-full bg-white text-[#3d352e] shadow-sm transition-all" title="Magazine Layout">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            </button>
+            <button onclick="setGridStyle('compact')" id="styleBtnCompact" class="p-1.5 rounded-full text-[#8c7e74] hover:text-[#3d352e] transition-all" title="Compact Layout">
+              <i data-lucide="grid" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Search for Mobile devices -->
+      <div class="relative md:hidden mb-6">
+        <input type="text" id="searchBarMobile" oninput="handleSearch(this.value)" placeholder="Search captures..." class="w-full bg-white/60 border border-[#3d352e]/10 rounded-full px-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#9bc5f5]">
+        <i data-lucide="search" class="w-4 h-4 absolute right-4 top-2.5 text-[#8c7e74]"></i>
+      </div>
+
+      <!-- Grid Frame -->
+      <div id="mediaGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 magazine-grid transition-all duration-500">
+        <!-- Rendered Dynamically via JS -->
+      </div>
+
+      <!-- Empty State View -->
+      <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-center">
+        <div class="w-16 h-16 bg-white/40 rounded-full flex items-center justify-center mb-4 text-[#8c7e74]">
+          <i data-lucide="image-off" class="w-7 h-7"></i>
+        </div>
+        <h3 class="font-serif italic text-lg text-[#3d352e]">No visual captures found</h3>
+        <p class="text-xs text-[#8c7e74] mt-1">Try resetting the side filters or adding a new memory!</p>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Image Editor & Metadata Studio Modal -->
+  <div id="editModal" class="fixed inset-0 z-50 bg-[#3d352e]/30 backdrop-blur-md flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col md:flex-row relative">
+      <button onclick="closeEditModal()" class="absolute top-4 right-4 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-md"><i data-lucide="x" class="w-4 h-4"></i></button>
+      
+      <!-- Studio Live Preview Area -->
+      <div class="w-full md:w-1/2 bg-[#fbf8f5] p-6 flex flex-col justify-center items-center relative border-b md:border-b-0 md:border-r border-[#3d352e]/5 min-h-[300px]">
+        <div class="relative max-w-full max-h-[400px] overflow-hidden rounded-2xl shadow-lg bg-white p-2">
+          <!-- Working Canvas wrapper for operations -->
+          <canvas id="editCanvas" class="max-w-full max-h-[350px] object-contain rounded-xl"></canvas>
+        </div>
+        <p class="text-[10px] text-[#8c7e74] mt-3 uppercase tracking-wider italic">Studio Preview Monitor</p>
+      </div>
+
+      <!-- Studio Custom Controls -->
+      <div class="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-between">
+        <div>
+          <h3 class="font-serif text-xl italic font-semibold text-[#3d352e] mb-4">Aesthetic Media Studio</h3>
+          
+          <!-- Studio Tab Switching navigation -->
+          <div class="flex border-b border-[#3d352e]/5 mb-6 text-xs gap-4">
+            <button onclick="switchStudioTab('metadata')" id="tabBtn-metadata" class="pb-2 border-b-2 border-[#3d352e] font-semibold text-[#3d352e]">Identity & Tagging</button>
+            <button onclick="switchStudioTab('filters')" id="tabBtn-filters" class="pb-2 border-b-2 border-transparent text-[#8c7e74] hover:text-[#3d352e]">Basic Editing & Presets</button>
+            <button onclick="switchStudioTab('ai')" id="tabBtn-ai" class="pb-2 border-b-2 border-transparent text-[#8c7e74] hover:text-[#3d352e] flex items-center space-x-1">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#9bc5f5]"></i>
+              <span>Aesthetic AI Lab</span>
+            </button>
+          </div>
+
+          <!-- Studio Tab Content — METADATA -->
+          <div id="studioTab-metadata" class="space-y-4">
+            <div>
+              <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Image Title</label>
+              <input type="text" id="editTitle" class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#ffd4d0]">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Visual Story / Description</label>
+              <textarea id="editDesc" rows="3" class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#ffd4d0] resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Category</label>
+                <select id="editCategory" onchange="updateEditSubcategoryDropdown(this.value)" class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#ffd4d0]"></select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Subcategory</label>
+                <select id="editSubcategory" class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#ffd4d0]"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Studio Tab Content — FILTERS & ROTATION -->
+          <div id="studioTab-filters" class="space-y-4 hidden">
+            <!-- Rotations & Flips -->
+            <div>
+              <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-2">Transform Layout</label>
+              <div class="flex space-x-2">
+                <button onclick="applyRotation()" class="flex-1 py-2 border border-[#3d352e]/10 hover:bg-[#3d352e]/5 rounded-xl text-xs flex items-center justify-center space-x-2">
+                  <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                  <span>Rotate 90°</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Predefined Tone Presets -->
+            <div>
+              <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-2">Tone Presets</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="applyTonePreset('none')" class="p-2 border border-[#3d352e]/10 hover:border-[#3d352e] rounded-xl text-[10px] uppercase font-semibold">Normal</button>
+                <button onclick="applyTonePreset('nude-glow')" class="p-2 bg-[#ffd4d0]/10 border border-[#ffd4d0]/30 hover:border-[#ffd4d0] rounded-xl text-[10px] uppercase font-semibold text-[#3d352e]">Nude Glow</button>
+                <button onclick="applyTonePreset('dusty-blue')" class="p-2 bg-[#9bc5f5]/10 border border-[#9bc5f5]/30 hover:border-[#9bc5f5] rounded-xl text-[10px] uppercase font-semibold text-[#3d352e]">Dusty Blue</button>
+                <button onclick="applyTonePreset('sepia')" class="p-2 border border-[#3d352e]/10 hover:border-[#3d352e] rounded-xl text-[10px] uppercase font-semibold">Sepia Tone</button>
+                <button onclick="applyTonePreset('retro')" class="p-2 border border-[#3d352e]/10 hover:border-[#3d352e] rounded-xl text-[10px] uppercase font-semibold">Retro film</button>
+                <button onclick="applyTonePreset('mono')" class="p-2 border border-[#3d352e]/10 hover:border-[#3d352e] rounded-xl text-[10px] uppercase font-semibold">Monochrome</button>
+              </div>
+            </div>
+
+            <!-- Manual Slider Controls -->
+            <div class="space-y-2 pt-2 border-t border-[#3d352e]/5">
+              <div>
+                <div class="flex justify-between text-[10px] font-bold text-[#8c7e74]">
+                  <span>BRIGHTNESS</span>
+                  <span id="label-brightness">100%</span>
+                </div>
+                <input type="range" id="slider-brightness" min="50" max="150" value="100" oninput="updateCanvasAdjustments()" class="w-full accent-[#ffd4d0] h-1 bg-[#3d352e]/5 rounded-lg appearance-none cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] font-bold text-[#8c7e74]">
+                  <span>CONTRAST</span>
+                  <span id="label-contrast">100%</span>
+                </div>
+                <input type="range" id="slider-contrast" min="50" max="150" value="100" oninput="updateCanvasAdjustments()" class="w-full accent-[#ffd4d0] h-1 bg-[#3d352e]/5 rounded-lg appearance-none cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] font-bold text-[#8c7e74]">
+                  <span>SATURATION</span>
+                  <span id="label-saturation">100%</span>
+                </div>
+                <input type="range" id="slider-saturation" min="0" max="200" value="100" oninput="updateCanvasAdjustments()" class="w-full accent-[#ffd4d0] h-1 bg-[#3d352e]/5 rounded-lg appearance-none cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <!-- Studio Tab Content — SIMULATED AI LAB -->
+          <div id="studioTab-ai" class="space-y-4 hidden">
+            <div class="bg-[#9bc5f5]/5 border border-[#9bc5f5]/20 p-3.5 rounded-2xl flex items-start space-x-3">
+              <i data-lucide="sparkles" class="w-5 h-5 text-[#9bc5f5] mt-0.5 flex-shrink-0"></i>
+              <div class="text-[11px] leading-relaxed">
+                <span class="font-bold text-[#3d352e] block mb-0.5">Gemini Visual Generative Engine</span>
+                Simulate generative edits, item replacements, or background modifications with custom prompting overlays.
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-2">Pre-Engineered AI Commands</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="simulateAIAction('bg-nude-pink')" class="p-2.5 border border-[#ffd4d0]/20 hover:border-[#ffd4d0] bg-white/40 text-[10px] font-semibold rounded-xl flex items-center justify-between text-left">
+                  <span>Replace Background: Blush</span>
+                  <i data-lucide="sparkles" class="w-3 h-3 text-[#ffd4d0]"></i>
+                </button>
+                <button onclick="simulateAIAction('bg-sky-blue')" class="p-2.5 border border-[#9bc5f5]/20 hover:border-[#9bc5f5] bg-white/40 text-[10px] font-semibold rounded-xl flex items-center justify-between text-left">
+                  <span>Replace Background: Blue</span>
+                  <i data-lucide="sparkles" class="w-3 h-3 text-[#9bc5f5]"></i>
+                </button>
+                <button onclick="simulateAIAction('remove-objects')" class="p-2.5 border border-[#3d352e]/10 hover:border-[#3d352e] bg-white/40 text-[10px] font-semibold rounded-xl flex items-center justify-between text-left">
+                  <span>Clean Objects (AI Erase)</span>
+                  <i data-lucide="trash-2" class="w-3 h-3 text-[#8c7e74]"></i>
+                </button>
+                <button onclick="simulateAIAction('bokeh')" class="p-2.5 border border-[#3d352e]/10 hover:border-[#3d352e] bg-white/40 text-[10px] font-semibold rounded-xl flex items-center justify-between text-left">
+                  <span>Depth of Field Lens Blur</span>
+                  <i data-lucide="aperture" class="w-3 h-3 text-[#8c7e74]"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Custom Object / Detail Replace Prompt</label>
+              <div class="flex space-x-2">
+                <input type="text" id="aiReplacePrompt" placeholder="e.g. change the shirt color to nude pink..." class="flex-1 bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none">
+                <button onclick="executeAIPrompt()" class="px-4 bg-[#9bc5f5] hover:bg-[#9bc5f5]/90 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow-md shadow-[#9bc5f5]/20">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                  <span>Modify</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Studio Actions Block -->
+        <div class="flex items-center space-x-3 pt-6 border-t border-[#3d352e]/5 mt-6">
+          <button onclick="deleteImage()" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Delete Capture</span>
+          </button>
+          
+          <div class="flex-1 flex items-center justify-end space-x-2">
+            <button onclick="closeEditModal()" class="px-5 py-2.5 border border-[#3d352e]/10 hover:bg-[#3d352e]/5 rounded-xl text-xs font-semibold text-[#8c7e74]">Cancel</button>
+            <button onclick="saveStudioChanges()" class="px-6 py-2.5 bg-[#3d352e] hover:bg-[#3d352e]/90 text-[#fbf8f5] rounded-xl text-xs font-semibold shadow-lg shadow-[#3d352e]/10 transform active:scale-95 transition-all">Apply Studio Edits</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add New Image Modal Overlay -->
+  <div id="addModal" class="fixed inset-0 z-50 bg-[#3d352e]/30 backdrop-blur-md flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl p-6 sm:p-8 relative">
+      <button onclick="closeAddModal()" class="absolute top-4 right-4 p-2 hover:bg-[#3d352e]/5 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+
+      <h3 class="font-serif text-xl italic font-semibold text-[#3d352e] mb-2">Capture a New Memory</h3>
+      <p class="text-xs text-[#8c7e74] mb-6">Import visual details from your local drive to populate the personalized dashboard.</p>
+
+      <div class="space-y-4">
+        <!-- File Input Uploader Box -->
+        <div class="border-2 border-dashed border-[#3d352e]/10 hover:border-[#ffd4d0] bg-[#fbf8f5] rounded-2xl p-6 text-center cursor-pointer relative smooth-transition group" onclick="triggerFileInput('addImageInput')">
+          <input type="file" id="addImageInput" onchange="handleAddImageUpload(event)" accept="image/*" class="hidden">
+          
+          <!-- State 1: Upload Placeholder -->
+          <div id="addUploadPlaceholder" class="space-y-2">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center mx-auto text-[#8c7e74] shadow-sm smooth-transition group-hover:scale-110">
+              <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+            </div>
+            <p class="text-xs font-semibold text-[#3d352e]">Click to upload local photo</p>
+            <p class="text-[10px] text-[#8c7e74]">Supports PNG, JPG, WebP (bypasses CORS)</p>
+          </div>
+
+          <!-- State 2: Preview Chosen Photo -->
+          <div id="addUploadPreviewContainer" class="hidden flex-col items-center">
+            <img id="addUploadPreview" class="max-h-36 rounded-xl object-contain shadow-md mb-2">
+            <p class="text-[10px] text-[#8c7e74] hover:underline">Change image file</p>
+          </div>
+        </div>
+
+        <!-- Custom Image URL Option -->
+        <div class="text-center text-[10px] text-[#8c7e74] font-bold tracking-widest uppercase">— OR USE URL —</div>
+        <div>
+          <input type="url" id="addImageUrl" placeholder="https://unsplash.com/photo-..." class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2.5 text-xs focus:outline-none">
+        </div>
+
+        <!-- Category & Details Inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Image Title</label>
+            <input type="text" id="addTitle" placeholder="Memory Tag..." class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Brief Description</label>
+            <input type="text" id="addDesc" placeholder="Visual details..." class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Category</label>
+            <select id="addCategory" onchange="updateAddSubcategoryDropdown(this.value)" class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-[#8c7e74] uppercase tracking-wider mb-1">Subcategory</label>
+            <select id="addSubcategory" class="w-full bg-[#fbf8f5] border border-[#3d352e]/10 rounded-xl px-3 py-2 text-xs focus:outline-none"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 mt-8">
+        <button onclick="closeAddModal()" class="px-5 py-2.5 border border-[#3d352e]/10 hover:bg-[#3d352e]/5 rounded-xl text-xs font-semibold text-[#8c7e74]">Cancel</button>
+        <button onclick="saveNewImage()" class="px-6 py-2.5 bg-[#3d352e] hover:bg-[#3d352e]/90 text-[#fbf8f5] rounded-xl text-xs font-semibold shadow-lg shadow-[#3d352e]/10 transform active:scale-95 transition-all">Store Captured Moment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classic Media Lightbox View -->
+  <div id="lightbox" class="fixed inset-0 z-50 bg-[#3d352e]/95 backdrop-blur-lg flex items-center justify-center hidden" onkeydown="handleLightboxKeys(event)">
+    <button onclick="closeLightbox()" class="absolute top-6 right-6 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/80 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+
+    <!-- Navigation Control Buttons -->
+    <button onclick="navigateLightbox(-1)" class="absolute left-4 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/80 transition-colors" title="Previous Media"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+    <button onclick="navigateLightbox(1)" class="absolute right-4 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/80 transition-colors" title="Next Media"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+
+    <div class="max-w-4xl max-h-[85vh] p-4 flex flex-col justify-center items-center">
+      <img id="lightboxImage" class="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl border border-white/5" src="" alt="Lightbox Visual Preview">
+      
+      <!-- Meta Information Footer -->
+      <div class="text-center text-[#fbf8f5] mt-6 max-w-xl">
+        <span id="lightboxCategoryLabel" class="text-[10px] tracking-[0.25em] text-[#9bc5f5] uppercase font-bold">Category</span>
+        <h3 id="lightboxTitle" class="font-serif text-lg sm:text-2xl italic mt-1 font-semibold">Media Title Label</h3>
+        <p id="lightboxDesc" class="text-xs text-[#8c7e74] mt-2 leading-relaxed">Visual documentation of our shared experiences.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Notification Panel -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 bg-white border border-[#3d352e]/10 rounded-2xl p-4 shadow-2xl flex items-center space-x-3 transform translate-y-24 opacity-0 transition-all duration-500 max-w-sm pointer-events-none">
+    <div id="toastIconCircle" class="w-8 h-8 rounded-full bg-[#9bc5f5]/20 flex items-center justify-center text-[#9bc5f5]">
+      <i data-lucide="info" class="w-4 h-4"></i>
+    </div>
+    <div>
+      <h4 id="toastTitle" class="text-xs font-semibold text-[#3d352e]">Dashboard Action</h4>
+      <p id="toastBody" class="text-[10px] text-[#8c7e74] mt-0.5">Operation executed successfully.</p>
+    </div>
+  </div>
+
+  <script>
+    // Exact requested category tree
+    const CATEGORIES_DATA = {
+      "Family": ["Parents", "Siblings", "Grandparents", "Cousins", "Family Gatherings"],
+      "Friends": ["Best Friends", "School Friends", "College Friends", "Group Photos", "Hangouts"],
+      "Selfies": ["Mirror Selfies", "Outdoor Selfies", "Candid Selfies", "Aesthetic", "Travel Selfies"],
+      "Travel": ["Beaches", "Mountains", "Cities", "Road Trips", "Vacations"],
+      "Nature": ["Forests", "Waterfalls", "Rivers", "Sunsets", "Flowers"],
+      "Mountains": ["Snow Peaks", "Hills", "Valleys", "Trekking", "Scenic Views"],
+      "Animals": ["Pets", "Wildlife", "Birds", "Marine Life", "Farm Animals"],
+      "Plants & Trees": ["Flowers", "Indoor Plants", "Trees", "Gardens", "Bonsai"],
+      "Food": ["Homemade", "Street Food", "Desserts", "Cafés", "Drinks"],
+      "Celebrations": ["Birthdays", "Anniversaries", "Graduation", "Parties", "Festivals"],
+      "Wedding": ["Engagement", "Haldi", "Mehendi", "Ceremony", "Reception"],
+      "Culture & Festivals": ["Diwali", "Holi", "Eid", "Christmas", "Traditional Wear"],
+      "School & College": ["Campus", "Classroom", "Events", "Farewell", "Convocation"],
+      "Work & Projects": ["Office", "Meetings", "Team Photos", "Achievements", "Certificates"],
+      "Sports & Fitness": ["Gym", "Cricket", "Football", "Running", "Cycling"],
+      "Fashion": ["Outfits", "Accessories", "Shoes", "Jewelry", "Photoshoots"],
+      "Vehicles": ["Cars", "Bikes", "Road Trips", "Trains", "Aircraft"],
+      "Places": ["Parks", "Cafés", "Temples", "Monuments", "Streets"],
+      "Memories": ["Childhood", "Throwbacks", "Special Moments", "Firsts", "Random Clicks"],
+      "Favorites": ["Best Photos", "Wallpapers", "Profile Pictures", "Edited Photos", "Hidden"]
+    };
+
+    // Lucide icons for each category
+    const CATEGORY_ICONS = {
+      "Family": "users",
+      "Friends": "smile",
+      "Selfies": "camera",
+      "Travel": "compass",
+      "Nature": "leaf",
+      "Mountains": "mountain",
+      "Animals": "paw",
+      "Plants & Trees": "sprout",
+      "Food": "utensils",
+      "Celebrations": "party-popper",
+      "Wedding": "heart",
+      "Culture & Festivals": "sparkles",
+      "School & College": "graduation-cap",
+      "Work & Projects": "briefcase",
+      "Sports & Fitness": "dumbbell",
+      "Fashion": "shirt",
+      "Vehicles": "car",
+      "Places": "map-pin",
+      "Memories": "clock",
+      "Favorites": "star"
+    };
+
+    // Robust Seed Images Dataset representing diverse categories
+    const seedImages = [
+      {
+        id: "seed-1",
+        title: "Family Dinner Setup",
+        desc: "Warm glowing lights on a shared dinner plate layout with our extended family circle.",
+        category: "Family",
+        subcategory: "Family Gatherings",
+        url: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-2",
+        title: "Dunes of New York",
+        desc: "Coastal highway structures looking out over blue water horizons.",
+        category: "Travel",
+        subcategory: "Road Trips",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-3",
+        title: "Morning Cappuccino",
+        desc: "Warm light capturing the foam art inside a local ceramic cup.",
+        category: "Food",
+        subcategory: "Cafés",
+        url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-4",
+        title: "Autumn Trek Trail",
+        desc: "Trekking paths looking towards the snow peaks of northern regions.",
+        category: "Mountains",
+        subcategory: "Trekking",
+        url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-5",
+        title: "Cozy Garden Greenhouse",
+        desc: "Lush tropical plants nestled inside a warm wooden structures nursery.",
+        category: "Plants & Trees",
+        subcategory: "Indoor Plants",
+        url: "https://images.unsplash.com/photo-1463936575829-25148e1db1b8?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-6",
+        title: "Minimalist Linen Wardrobe",
+        desc: "Beige tones and premium fabrics hanging beautifully on warm wooden bars.",
+        category: "Fashion",
+        subcategory: "Outfits",
+        url: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-7",
+        title: "Golden Hour Ocean Splash",
+        desc: "Cool waves crashing against sandstone structures in the late evening light.",
+        category: "Nature",
+        subcategory: "Sunsets",
+        url: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "seed-8",
+        title: "Vintage Car Dashboard",
+        desc: "Classic wood steering wheel and leather dashboard gauges ready for a roadtrip.",
+        category: "Vehicles",
+        subcategory: "Vintage Vehicles",
+        url: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80"
+      }
+    ];
+  </script>
+
+  <script>
+    // Reactive Application State
+    let activeCategory = "All";
+    let activeSubcategory = null;
+    let gridStyle = "magazine"; // "magazine" or "compact"
+    let localDB = [];
+    let editImageID = null;
+    let currentEditData = {}; // holds canvas operations: rotation, filter, sliders
+    let addImagePreviewData = null;
+    let activeStudioTab = "metadata";
+    let lightboxList = [];
+    let lightboxIndex = 0;
+
+    // Launch Application
+    window.addEventListener('DOMContentLoaded', () => {
+      const localStore = localStorage.getItem('aesthetic_db');
+      if (localStore) {
+        try {
+          localDB = JSON.parse(localStore);
+        } catch(e) {
+          localDB = [...seedImages];
+        }
+      } else {
+        localDB = [...seedImages];
+        saveToLocalStorage();
+      }
+
+      // Render Categories Accordion Sidebar Panel
+      buildCategoriesAccordion();
+      // Render Grid Content Cards
+      filterMedia();
+      // Attach Mobile Swipe handlers
+      setupTouchSwipes();
+    });
+
+    function saveToLocalStorage() {
+      localStorage.setItem('aesthetic_db', JSON.stringify(localDB));
+    }
+
+    // Toggle Mobile Navigation Drawer
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebarContainer');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const isHidden = sidebar.classList.contains('-translate-x-full');
+      
+      if (isHidden) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    // Dynamic generation of Category sidebar accordion
+    function buildCategoriesAccordion() {
+      const container = document.getElementById('categoryAccordionContainer');
+      container.innerHTML = '';
+
+      // Main Categories
+      Object.keys(CATEGORIES_DATA).forEach(category => {
+        const iconName = CATEGORY_ICONS[category] || 'folder';
+        const isSelectedCategory = activeCategory === category;
+        
+        const catElement = document.createElement('div');
+        catElement.className = "mb-1 text-xs";
+        catElement.innerHTML = `
+          <!-- Accordion Title Bar -->
+          <div onclick="handleCategoryHeaderClick('${category}')" class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer smooth-transition ${isSelectedCategory ? 'bg-[#3d352e]/5 font-semibold text-[#3d352e]' : 'hover:bg-[#3d352e]/5 text-[#8c7e74] hover:text-[#3d352e]'}">
+            <div class="flex items-center space-x-3">
+              <i data-lucide="${iconName}" class="w-4 h-4 opacity-75"></i>
+              <span>${category}</span>
+            </div>
+            <i data-lucide="chevron-down" id="chevron-${category.replace(/[^a-zA-Z]/g, '')}" class="w-3.5 h-3.5 transition-transform duration-300 transform ${isSelectedCategory ? 'rotate-180' : ''}"></i>
+          </div>
+          <!-- Subcategory collapsible list -->
+          <div id="subnav-${category.replace(/[^a-zA-Z]/g, '')}" class="pl-9 space-y-1 overflow-hidden transition-all duration-300 ${isSelectedCategory ? 'max-h-60 mt-1' : 'max-h-0'}" style="will-change: max-height;">
+            ${CATEGORIES_DATA[category].map(sub => {
+              const isSelectedSub = activeSubcategory === sub && isSelectedCategory;
+              return `<div onclick="handleSubcategoryClick('${category}', '${sub}', event)" class="py-1.5 hover:underline cursor-pointer ${isSelectedSub ? 'text-[#9bc5f5] font-semibold' : 'text-[#8c7e74] hover:text-[#3d352e]'}">${sub}</div>`;
+            }).join('')}
+          </div>
+        `;
+        container.appendChild(catElement);
+      });
+
+      // Update Lucide vectors
+      lucide.createIcons();
+    }
+
+    // Set Sidebar Filters Active & Accordion Toggles
+    function handleCategoryHeaderClick(category) {
+      const containerName = category.replace(/[^a-zA-Z]/g, '');
+      const prevActiveCategory = activeCategory;
+
+      if (activeCategory === category) {
+        // Toggle own accordion closed, but keep parent active
+        const menu = document.getElementById(`subnav-${containerName}`);
+        const chevron = document.getElementById(`chevron-${containerName}`);
+        if (menu.classList.contains('max-h-0')) {
+          menu.classList.remove('max-h-0');
+          menu.classList.add('max-h-60', 'mt-1');
+          chevron.classList.add('rotate-180');
+        } else {
+          menu.classList.add('max-h-0');
+          menu.classList.remove('max-h-60', 'mt-1');
+          chevron.classList.remove('rotate-180');
+        }
+      } else {
+        // Expand new category
+        activeCategory = category;
+        activeSubcategory = null;
+        buildCategoriesAccordion();
+        filterMedia();
+      }
+    }
+
+    // Subcategory Action Trigger
+    function handleSubcategoryClick(category, subcategory, event) {
+      event.stopPropagation();
+      activeCategory = category;
+      activeSubcategory = subcategory;
+      buildCategoriesAccordion();
+      filterMedia();
+    }
+
+    function resetFilters() {
+      activeCategory = "All";
+      activeSubcategory = null;
+      buildCategoriesAccordion();
+      filterMedia();
+      showToast("Filters Reset", "Showing full aesthetic catalog");
+    }
+
+    // Grid View Switcher
+    function setGridStyle(style) {
+      gridStyle = style;
+      const grid = document.getElementById('mediaGrid');
+      const btnMag = document.getElementById('styleBtnMagazine');
+      const btnComp = document.getElementById('styleBtnCompact');
+
+      if (gridStyle === 'magazine') {
+        grid.classList.add('magazine-grid');
+        btnMag.className = "p-1.5 rounded-full bg-white text-[#3d352e] shadow-sm transition-all";
+        btnComp.className = "p-1.5 rounded-full text-[#8c7e74] hover:text-[#3d352e] transition-all";
+      } else {
+        grid.classList.remove('magazine-grid');
+        btnMag.className = "p-1.5 rounded-full text-[#8c7e74] hover:text-[#3d352e] transition-all";
+        btnComp.className = "p-1.5 rounded-full bg-white text-[#3d352e] shadow-sm transition-all";
+      }
+    }
+
+    // Search input handler
+    let searchQuery = "";
+    function handleSearch(query) {
+      searchQuery = query.toLowerCase();
+      
+      // Keep desktop and mobile search fields synchronized
+      const searchBar = document.getElementById('searchBar');
+      const searchBarMobile = document.getElementById('searchBarMobile');
+      
+      if (searchBar && searchBar.value !== query) {
+        searchBar.value = query;
+      }
+      if (searchBarMobile && searchBarMobile.value !== query) {
+        searchBarMobile.value = query;
+      }
+
+      filterMedia();
+    }
+
+    // Core Media Filter and Rendering logic
+    function filterMedia() {
+      const grid = document.getElementById('mediaGrid');
+      const emptyState = document.getElementById('emptyState');
+      grid.innerHTML = '';
+
+      let results = [...localDB];
+
+      // Active sidebar filter scope
+      if (activeCategory !== "All") {
+        results = results.filter(item => item.category === activeCategory);
+        if (activeSubcategory) {
+          results = results.filter(item => item.subcategory === activeSubcategory);
+        }
+      }
+
+      // Search matching details
+      if (searchQuery) {
+        results = results.filter(item => 
+          item.title.toLowerCase().includes(searchQuery) || 
+          item.desc.toLowerCase().includes(searchQuery) ||
+          item.category.toLowerCase().includes(searchQuery) ||
+          (item.subcategory && item.subcategory.toLowerCase().includes(searchQuery))
+        );
+      }
+
+      // Sync Lightbox array list
+      lightboxList = [...results];
+
+      // Update Header Info
+      const pathText = activeCategory === "All" ? "All Items" : `${activeCategory} ${activeSubcategory ? ` / ${activeSubcategory}` : ""}`;
+      document.getElementById('activePathIndicator').innerText = pathText;
+
+      if (results.length === 0) {
+        emptyState.classList.remove('hidden');
+        grid.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      // Populate Cards
+      results.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = "gallery-card group relative bg-white/60 backdrop-blur-md rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl border border-white/40 smooth-transition cursor-pointer";
+        
+        card.innerHTML = `
+          <!-- Image Wrapper -->
+          <div onclick="openLightbox(${index})" class="relative overflow-hidden aspect-[4/5] sm:aspect-[4/5] bg-[#fbf8f5]">
+            <img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover smooth-transition group-hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/800x1000/eef4f7/3d352e?text=Aesthetic+Capture'">
+            
+            <!-- Hover Slide-up Glassy Info Panel -->
+            <div class="absolute inset-x-0 bottom-0 bg-white/30 backdrop-blur-md p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 flex flex-col justify-end">
+              <span class="text-[9px] uppercase tracking-widest font-bold text-[#8c7e74] mb-0.5">${item.category} / ${item.subcategory || 'General'}</span>
+              <h4 class="font-serif italic text-sm font-semibold text-[#3d352e] truncate">${item.title}</h4>
+              <p class="text-[10px] text-[#8c7e74] truncate mt-0.5">${item.desc}</p>
+            </div>
+          </div>
+
+          <!-- Edit Hover Trigger Overlay -->
+          <button onclick="event.stopPropagation(); openEditModal('${item.id}')" class="absolute top-4 right-4 p-2 bg-white/80 hover:bg-white text-[#3d352e] rounded-full shadow-lg opacity-0 group-hover:opacity-100 smooth-transition" title="Aesthetic Studio Tools">
+            <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Update Lucide icon renders
+      lucide.createIcons();
+    }
+
+    // Canvas & Interactive Visual Filters Logic
+    let canvas, ctx, activeImageObj = null;
+
+    function initCanvasWithImage(src) {
+      canvas = document.getElementById('editCanvas');
+      ctx = canvas.getContext('2d');
+      activeImageObj = new Image();
+      activeImageObj.crossOrigin = "Anonymous";
+      
+      activeImageObj.onload = function() {
+        canvas.width = activeImageObj.width;
+        canvas.height = activeImageObj.height;
+        drawCanvas();
+      };
+      
+      activeImageObj.onerror = function() {
+        // Fallback placeholder image on canvas load failure
+        activeImageObj.src = 'https://placehold.co/800x1000/eef4f7/3d352e?text=No+CORS+Capture';
+      };
+
+      activeImageObj.src = src;
+    }
+
+    function drawCanvas() {
+      if (!ctx || !activeImageObj) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      // Apply center transformation for rotations
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((currentEditData.rotation * Math.PI) / 180);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
+      // Assemble Web-Filter parameters
+      let filterStr = `
+        brightness(${currentEditData.brightness}%)
+        contrast(${currentEditData.contrast}%)
+        saturate(${currentEditData.saturation}%)
+      `;
+
+      // Predefined Matrix overrides
+      if (currentEditData.preset === 'sepia') filterStr += " sepia(80%)";
+      else if (currentEditData.preset === 'mono') filterStr += " grayscale(100%)";
+      else if (currentEditData.preset === 'nude-glow') filterStr += " sepia(10%) hue-rotate(-10deg) saturate(110%)";
+      else if (currentEditData.preset === 'dusty-blue') filterStr += " hue-rotate(180deg) saturate(85%) brightness(95%)";
+      else if (currentEditData.preset === 'retro') filterStr += " sepia(30%) contrast(110%) saturate(90%)";
+
+      ctx.filter = filterStr.trim();
+      ctx.drawImage(activeImageObj, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    // Rotate canvas clockwise
+    function applyRotation() {
+      currentEditData.rotation = (currentEditData.rotation + 90) % 360;
+      drawCanvas();
+      showToast("Rotated Image", "Applied clockwise transform");
+    }
+
+    // Apply specific tone preset
+    function applyTonePreset(preset) {
+      currentEditData.preset = preset;
+      drawCanvas();
+      showToast("Filter Presets Updated", `Aesthetic set to: ${preset.replace('-', ' ')}`);
+    }
+
+    // Adjust canvas sliders
+    function updateCanvasAdjustments() {
+      currentEditData.brightness = document.getElementById('slider-brightness').value;
+      currentEditData.contrast = document.getElementById('slider-contrast').value;
+      currentEditData.saturation = document.getElementById('slider-saturation').value;
+
+      document.getElementById('label-brightness').innerText = `${currentEditData.brightness}%`;
+      document.getElementById('label-contrast').innerText = `${currentEditData.contrast}%`;
+      document.getElementById('label-saturation').innerText = `${currentEditData.saturation}%`;
+
+      drawCanvas();
+    }
+
+    // Generates creative simulation on Canvas matrix
+    function simulateAIAction(action) {
+      showToast("AI Sandbox initialized", "Calculating prompt textures...");
+      
+      setTimeout(() => {
+        if (!ctx) return;
+        ctx.save();
+        
+        if (action === 'bg-nude-pink') {
+          // Fill background elements with Blush Pink
+          ctx.fillStyle = "rgba(255, 212, 208, 0.4)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          showToast("AI Match Complete", "Background repainted to Blush Pink");
+        } else if (action === 'bg-sky-blue') {
+          // Fill background elements with Linen Blue
+          ctx.fillStyle = "rgba(155, 197, 245, 0.4)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          showToast("AI Match Complete", "Background repainted to Soft Blue");
+        } else if (action === 'remove-objects') {
+          // Eraser paint overlap
+          ctx.fillStyle = "#fbf8f5";
+          ctx.beginPath();
+          ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, 2 * Math.PI);
+          ctx.fill();
+          showToast("AI Cleaned", "Unwanted items seamlessly patched");
+        } else if (action === 'bokeh') {
+          ctx.filter = "blur(6px)";
+          ctx.drawImage(canvas, 0, 0);
+          showToast("AI Focused", "Bokeh Depth of Field applied successfully");
+        }
+        
+        ctx.restore();
+      }, 1000);
+    }
+
+    function executeAIPrompt() {
+      const prompt = document.getElementById('aiReplacePrompt').value;
+      if (!prompt) return showToast("Empty Command", "Please type an aesthetic request");
+
+      showToast("Querying AI Engine", "Processing modification prompt...");
+      setTimeout(() => {
+        showToast("Generative Edit Completed", `Success: ${prompt}`);
+        document.getElementById('aiReplacePrompt').value = "";
+      }, 1500);
+    }
+
+    // Studio Modals Controls
+    function openEditModal(id) {
+      editImageID = id;
+      const target = localDB.find(item => item.id === id);
+      if (!target) return;
+
+      // Reset Studio editing model values
+      currentEditData = {
+        rotation: 0,
+        preset: 'none',
+        brightness: 100,
+        contrast: 100,
+        saturation: 100
+      };
+
+      // Reset Studio tab inputs
+      document.getElementById('editTitle').value = target.title;
+      document.getElementById('editDesc').value = target.desc;
+
+      // Configure category selection lists
+      populateCategoryDropdown('editCategory', 'editSubcategory', target.category, target.subcategory);
+
+      // Reset editor sliders
+      document.getElementById('slider-brightness').value = 100;
+      document.getElementById('slider-contrast').value = 100;
+      document.getElementById('slider-saturation').value = 100;
+      document.getElementById('label-brightness').innerText = '100%';
+      document.getElementById('label-contrast').innerText = '100%';
+      document.getElementById('label-saturation').innerText = '100%';
+
+      // Initialize workspace Canvas draw
+      initCanvasWithImage(target.url);
+
+      switchStudioTab('metadata');
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+
+    function switchStudioTab(tab) {
+      activeStudioTab = tab;
+      
+      // Toggle tab button states
+      ['metadata', 'filters', 'ai'].forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const view = document.getElementById(`studioTab-${t}`);
+        if (t === tab) {
+          btn.className = "pb-2 border-b-2 border-[#3d352e] font-semibold text-[#3d352e]";
+          view.classList.remove('hidden');
+        } else {
+          btn.className = "pb-2 border-b-2 border-transparent text-[#8c7e74] hover:text-[#3d352e]";
+          view.classList.add('hidden');
+        }
+      });
+    }
+
+    // Dropdown helpers
+    function populateCategoryDropdown(catSelectId, subSelectId, defaultCat = "Family", defaultSub = "") {
+      const catSelect = document.getElementById(catSelectId);
+      catSelect.innerHTML = '';
+      
+      Object.keys(CATEGORIES_DATA).forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.innerText = cat;
+        if (cat === defaultCat) option.selected = true;
+        catSelect.appendChild(option);
+      });
+
+      updateSubcategoryDropdown(subSelectId, defaultCat, defaultSub);
+    }
+
+    function updateSubcategoryDropdown(subSelectId, category, defaultSub = "") {
+      const subSelect = document.getElementById(subSelectId);
+      subSelect.innerHTML = '';
+
+      if (CATEGORIES_DATA[category]) {
+        CATEGORIES_DATA[category].forEach(sub => {
+          const option = document.createElement('option');
+          option.value = sub;
+          option.innerText = sub;
+          if (sub === defaultSub) option.selected = true;
+          subSelect.appendChild(option);
+        });
+      }
+    }
+
+    function updateEditSubcategoryDropdown(val) {
+      updateSubcategoryDropdown('editSubcategory', val);
+    }
+
+    function updateAddSubcategoryDropdown(val) {
+      updateSubcategoryDropdown('addSubcategory', val);
+    }
+
+    // Database modifications persistent handler
+    function saveStudioChanges() {
+      const idx = localDB.findIndex(item => item.id === editImageID);
+      if (idx === -1) return;
+
+      // Extract details
+      localDB[idx].title = document.getElementById('editTitle').value || "Aesthetic Moment";
+      localDB[idx].desc = document.getElementById('editDesc').value || "Stored memory.";
+      localDB[idx].category = document.getElementById('editCategory').value;
+      localDB[idx].subcategory = document.getElementById('editSubcategory').value;
+
+      // Convert Canvas modifications to data URL to save editing permanently
+      try {
+        localDB[idx].url = canvas.toDataURL('image/jpeg', 0.9);
+      } catch (e) {
+        // Fallback for CORS issues
+        console.warn("Could not parse dataUrl due to external CORS constraints, keeping original src.");
+      }
+
+      saveToLocalStorage();
+      closeEditModal();
+      filterMedia();
+      showToast("Changes Applied", "Studio modifications stored successfully!");
+    }
+
+    function deleteImage() {
+      const check = confirm("Are you sure you want to delete this aesthetic moment?");
+      if (!check) return;
+
+      localDB = localDB.filter(item => item.id !== editImageID);
+      saveToLocalStorage();
+      closeEditModal();
+      filterMedia();
+      showToast("Moment Deleted", "Visual deleted from archive successfully");
+    }
+
+    // Pipeline for Adding New Visual Captures
+    function openAddModal() {
+      addImagePreviewData = null;
+      document.getElementById('addImageInput').value = '';
+      document.getElementById('addImageUrl').value = '';
+      document.getElementById('addTitle').value = '';
+      document.getElementById('addDesc').value = '';
+      document.getElementById('addUploadPreviewContainer').classList.add('hidden');
+      document.getElementById('addUploadPlaceholder').classList.remove('hidden');
+
+      populateCategoryDropdown('addCategory', 'addSubcategory', 'Family');
+
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.add('hidden');
+    }
+
+    function triggerFileInput(id) {
+      document.getElementById(id).click();
+    }
+
+    function handleAddImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        addImagePreviewData = e.target.result;
+        
+        // Show Local Preview Area
+        document.getElementById('addUploadPreview').src = addImagePreviewData;
+        document.getElementById('addUploadPreviewContainer').classList.remove('hidden');
+        document.getElementById('addUploadPlaceholder').classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveNewImage() {
+      const urlInput = document.getElementById('addImageUrl').value;
+      const title = document.getElementById('addTitle').value || "Visual Frame";
+      const desc = document.getElementById('addDesc').value || "No detailed metadata.";
+      const category = document.getElementById('addCategory').value;
+      const subcategory = document.getElementById('addSubcategory').value;
+
+      const finalUrl = addImagePreviewData || urlInput || "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80";
+
+      const newImg = {
+        id: 'user-' + Date.now(),
+        title: title,
+        desc: desc,
+        category: category,
+        subcategory: subcategory,
+        url: finalUrl
+      };
+
+      localDB.unshift(newImg);
+      saveToLocalStorage();
+      closeAddModal();
+      filterMedia();
+      showToast("Moment Captured", "Saved memory inside aesthetic archive");
+    }
+
+    // Responsive Lightbox Controls
+    function openLightbox(index) {
+      lightboxIndex = index;
+      updateLightboxContent();
+      document.getElementById('lightbox').classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+    }
+
+    function updateLightboxContent() {
+      const target = lightboxList[lightboxIndex];
+      if (!target) return;
+
+      document.getElementById('lightboxImage').src = target.url;
+      document.getElementById('lightboxCategoryLabel').innerText = `${target.category} / ${target.subcategory || 'General'}`;
+      document.getElementById('lightboxTitle').innerText = target.title;
+      document.getElementById('lightboxDesc').innerText = target.desc;
+    }
+
+    function navigateLightbox(dir) {
+      if (lightboxList.length === 0) return;
+      lightboxIndex = (lightboxIndex + dir + lightboxList.length) % lightboxList.length;
+      updateLightboxContent();
+    }
+
+    function handleLightboxKeys(event) {
+      if (event.key === 'ArrowRight') navigateLightbox(1);
+      if (event.key === 'ArrowLeft') navigateLightbox(-1);
+      if (event.key === 'Escape') closeLightbox();
+    }
+
+    // Swipe alternative gestures for mobile lightboxes
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    function setupTouchSwipes() {
+      const lb = document.getElementById('lightbox');
+      lb.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+      });
+      lb.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+    }
+
+    function handleSwipe() {
+      const threshold = 50;
+      if (touchEndX < touchStartX - threshold) {
+        navigateLightbox(1); // Swipe Left -> Next
+      }
+      if (touchEndX > touchStartX + threshold) {
+        navigateLightbox(-1); // Swipe Right -> Prev
+      }
+    }
+
+    // Dynamic Toast Controller
+    function showToast(title, msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastTitle').innerText = title;
+      document.getElementById('toastBody').innerText = msg;
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
+
